@@ -185,7 +185,7 @@ class CocoCutter:
 
         cat_ids = self.coco.getCatIds()
         print('cat_ids', cat_ids)
-        for i, image in tqdm(enumerate(images[:3])):
+        for i, image in tqdm(enumerate(images)):
             start = time.time()
             img_name = image['file_name']
             img_id = image['id']
