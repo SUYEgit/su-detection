@@ -11,6 +11,7 @@ import pretrainedmodels
 import pretrainedmodels.utils
 import torch
 from PIL import Image
+import numpy as np
 
 
 def softmax(logits, ng_node_id):
@@ -57,13 +58,6 @@ def load_cls_model(num_classes=2,
     return model
 
 
-def correct_byio(image_np):
-    """correct_byio"""
-    tmp_path = '/home/adt/project-microsoft/cls_tmp.jpg'
-    cv2.imwrite(tmp_path, image_np)
-    return cv2.imread(tmp_path)
-
-
 def run_classify_inference(model, image, thresh=0.8):
     """run_classify_inference"""
     if len(image.shape) < 3:
@@ -71,7 +65,8 @@ def run_classify_inference(model, image, thresh=0.8):
 
     tf_img = pretrainedmodels.utils.TransformImage(model)
 
-    image = correct_byio(image)
+    if image.dtype != 'uint8':
+        image = image.astype(np.uint8)
     input_img = Image.fromarray(image, mode='RGB')
 
     input_tensor = tf_img(input_img)

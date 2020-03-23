@@ -1,14 +1,14 @@
-基于coco格式数据的标准化evaluation工具
+# 基于coco格式数据的标准化evaluation工具
 
-1. mmdetection
+##1. mmdetection
 
 `python tools/test.py {CONFIG_PATH}/mask_rcnn.py {CKPT_PATH}/epoch_60.pth --json_out {JSON_OUT_PATH} --eval bbox segm`
 
-2. Paddle
+##2. Paddle
 
 `python tools/eval.py -c {CONFIG_PATH}/mask_rcnn_hrnetv2p_w18_1x.yml --output_eval {JSON_OUT_PATH}`
 
-3. 进行详细PR分析
+##3. 进行详细PR分析
 
 bbox:
 
