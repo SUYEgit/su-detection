@@ -13,7 +13,7 @@ from tqdm import tqdm
 import re
 
 
-def get_label2id(labels_path: str) -> Dict[str, int]:
+def get_label2id(labels_path):
     """id is 1 start"""
     with open(labels_path, 'r') as f:
         labels_str = f.read().split()
@@ -21,10 +21,10 @@ def get_label2id(labels_path: str) -> Dict[str, int]:
     return dict(zip(labels_str, labels_ids))
 
 
-def get_annpaths(ann_dir_path: str = None,
-                 ann_ids_path: str = None,
-                 ext: str = '',
-                 annpaths_list_path: str = None) -> List[str]:
+def get_annpaths(ann_dir_path,
+                 ann_ids_path,
+                 ext,
+                 annpaths_list_path):
     # If use annotation paths list
     if annpaths_list_path is not None:
         with open(annpaths_list_path, 'r') as f:
@@ -66,14 +66,14 @@ def get_image_info(annotation_root, extract_num_from_imgid=True):
 
 def get_coco_annotation_from_obj(obj, label2id):
     label = obj.findtext('name')
-    assert label in label2id, f"Error: {label} is not in label2id !"
+    assert label in label2id
     category_id = label2id[label]
     bndbox = obj.find('bndbox')
     xmin = int(bndbox.findtext('xmin')) - 1
     ymin = int(bndbox.findtext('ymin')) - 1
     xmax = int(bndbox.findtext('xmax'))
     ymax = int(bndbox.findtext('ymax'))
-    assert xmax > xmin and ymax > ymin, f"Box size error !: (xmin, ymin, xmax, ymax): {xmin, ymin, xmax, ymax}"
+    assert xmax > xmin and ymax > ymin
     o_width = xmax - xmin
     o_height = ymax - ymin
     ann = {
@@ -87,10 +87,10 @@ def get_coco_annotation_from_obj(obj, label2id):
     return ann
 
 
-def convert_xmls_to_cocojson(annotation_paths: List[str],
-                             label2id: Dict[str, int],
-                             output_jsonpath: str,
-                             extract_num_from_imgid: bool = True):
+def convert_xmls_to_cocojson(annotation_paths,
+                             label2id,
+                             output_jsonpath,
+                             extract_num_from_imgid):
     output_json_dict = {
         "images": [],
         "type": "instances",

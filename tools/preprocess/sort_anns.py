@@ -40,7 +40,7 @@ def load_json(xml_path):
     :return:
     """
     with open(xml_path, 'r', encoding='utf-8') as f:
-        xml_str = f.read(
+        xml_str = f.read()
     xmlparse = xmltodict.parse(xml_str)
     jsonstr = json.dumps(xmlparse, indent=1)
     jsonstr = json.loads(jsonstr)
