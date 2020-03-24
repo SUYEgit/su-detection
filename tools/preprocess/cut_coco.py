@@ -154,7 +154,6 @@ class CocoCutter:
         self.crop_width = crop_width
         self.crop_height = crop_height
 
-        image_ids = image_ids
         for i in range(len(image_ids)):
             image = self.coco.loadImgs(image_ids[i])[0]
             image_name = image['file_name']

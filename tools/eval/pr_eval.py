@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 """
-metric_analysis.py
 Date:    2020/3/3 下午7:04
 """
 import matplotlib

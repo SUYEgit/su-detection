@@ -12,8 +12,8 @@
 
 bbox:
 
-`python metric_analysis.py {JSON_OUT_PATH}/0323_test.bbox.json {METRIC_OUT_PATH} --ann {GT_PATH}/instances_test.json --types bbox`
+`python pr_eval.py {JSON_OUT_PATH}/0323_test.bbox.json {METRIC_OUT_PATH} --ann {GT_PATH}/instances_test.json --types bbox`
 
 segm:
 
-`python metric_analysis.py {JSON_OUT_PATH}/0323_test.segm.json {METRIC_OUT_PATH} --ann {GT_PATH}/instances_test.json --types segm`
+`python pr_eval.py {JSON_OUT_PATH}/0323_test.segm.json {METRIC_OUT_PATH} --ann {GT_PATH}/instances_test.json --types segm`

@@ -68,8 +68,7 @@ if __name__ == '__main__':
     json_path_df = '/Users/suye02/copy/youji_data/验收训练/mmnet/ceguai/train.json'
     out_path_df = '/Users/suye02/copy/youji_data/验收训练/mmnet/ceguai/JPEGImages_vis'
 
-    parser = argparse.ArgumentParser(
-        description='This script support visualizing coco annotations')
+    parser = argparse.ArgumentParser(description='This script support visualizing coco annotations')
     parser.add_argument('--images_path', type=str, default=images_path_df, help='path to images directory')
     parser.add_argument('--json_path', type=str, default=json_path_df, help='path to annotation files directory')
     parser.add_argument('--out_path', type=str, default=out_path_df, help='path to visualization output directory')

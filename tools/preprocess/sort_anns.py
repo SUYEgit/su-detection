@@ -47,6 +47,10 @@ def load_json(xml_path):
     return jsonstr
 
 
+def main():
+    print('hello')
+
+
 if __name__ == '__main__':
     path = '/Users/suye02/jingyan2/data/3月1号初版标注数据/dibu'
     out_path = path + '_sorted'
