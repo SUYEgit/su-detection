@@ -11,7 +11,7 @@ python plot_confmat.py \
     --out_path ${out_path} \
     --thr ${thresh}
 
-python pr_eval.py ${res_json} ${out_path} --ann ${ann_json} --types bbox
+python pr_eval.py ${res_json} ${out_path} --ann ${ann_json} --types bbox segm
 
 
 
