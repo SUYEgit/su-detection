@@ -102,7 +102,7 @@ def analyze_individual_category(k, cocoDt, cocoGt, catId, iou_type):
         if ann['category_id'] != catId:
             gt.dataset['annotations'][idx]['ignore'] = 1
             gt.dataset['annotations'][idx]['iscrowd'] = 1
-            gt.dataset['annotations'][idx]['category_id'] = catId
+            gt.dataset['annotations'][idx]['category_id'] = catId  # 不计类别
     cocoEval = COCOeval(gt, copy.deepcopy(dt), iou_type)
     cocoEval.params.imgIds = imgIds
     cocoEval.params.maxDets = [100]
@@ -167,7 +167,6 @@ def analyze_results(res_file, ann_file, res_types, out_dir):
 
     # coco_eval.eval['precision'][0, :, 0, 0, 2] 所表示的就是当IoU=0.5时
     # 从0到100的101个recall对应的101个precision的值
-    print(">>>>>>>>>>>>>>>>>start analyze results")
     for res_type in res_types:
         assert res_type in ['bbox', 'segm']
     directory = os.path.dirname(out_dir + '/')
@@ -209,11 +208,13 @@ def analyze_results(res_file, ann_file, res_types, out_dir):
             assert k == analyze_result[0]
             ps_supercategory = analyze_result[1]['ps_supercategory']
             ps_allcategory = analyze_result[1]['ps_allcategory']
-            # 计算消除超类混淆的precision
+
+            # compute precision but ignore superclass confusion
+            # 若没有超类，sim就是不计类别的ap
             ps[3, :, k, :, :] = ps_supercategory
-            # 计算消除类间混淆的precision
+            # compute precision but ignore any class confusion
             ps[4, :, k, :, :] = ps_allcategory
-            # 计算消除背景过杀和漏检的precision
+            # fill in background and false negative errors and plot
             ps[ps == -1] = 0
             ps[5, :, k, :, :] = (ps[4, :, k, :, :] > 0)
             ps[6, :, k, :, :] = 1.0

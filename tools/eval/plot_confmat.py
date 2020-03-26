@@ -113,8 +113,7 @@ class ConfMat:
         self.ann_coco = COCO(ann_json)
         self.res_coco = self.ann_coco.loadRes(res_json)
         self.cat_ids = self.ann_coco.getCatIds()
-        cats = self.ann_coco.loadCats(self.cat_ids)
-        self.class_names = [cat['name'] for cat in cats]
+        self.class_names = [cat['name'] for cat in self.ann_coco.cats]
         self.class_names.append('bg')
         self.confmat = np.zeros((len(self.class_names), len(self.class_names)))
         self.confmat_ids = [[[]] * len(self.class_names) for i in range(len(self.class_names))]
