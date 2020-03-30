@@ -8,11 +8,12 @@ import os
 from glob import glob
 import random
 import shutil
+import argparse
 
 
 def make_val_imgs(all_path, val_ratio=8):
     """所有数据放入训练集后，复制x分之一制作测试集"""
-    val_path = all_path + '_val'
+    val_path = os.path.join(all_path[:-len(os.path.basename(all_path))], 'val')
     if not os.path.exists(val_path):
         os.mkdir(val_path)
 
@@ -47,5 +48,8 @@ def coco_train_val_split(json_path):
 
 
 if __name__ == '__main__':
-    imgs_path = '/Users/suye02/jingyan2/data/3月1号初版标注数据/dibu/imgs'
-    make_val_imgs(imgs_path)
+    images_path_df = '/Users/suye02/HUAWEI/data/3.26/组装前/侧面_sorted/imgs'
+    parser = argparse.ArgumentParser(description='train val split')
+    parser.add_argument('--images_path', type=str, default=images_path_df)
+    args = parser.parse_args()
+    make_val_imgs(args.images_path)

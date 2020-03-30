@@ -8,6 +8,7 @@ import os
 import argparse
 import copy
 import shutil
+from glob import glob
 
 import cv2
 from tqdm import tqdm
@@ -24,6 +25,8 @@ class CoCoDataset:
         self.coco = COCO(json_path)
 
     def _target_exists(self, anns, target_names):
+        if target_names is None:
+            return True
         all_ann_names = [self.coco.cats[ann['category_id']]['name'] for ann in anns]
         for target_name in target_names:
             if target_name in all_ann_names:
@@ -31,6 +34,7 @@ class CoCoDataset:
         return False
 
     def ann_analysis(self, plot_out_path):
+        print('-----analyzing coco data and plotting-----')
         cc = Coco(image_dir=self.images_path,
                   anno_file=self.json_path)
 
@@ -45,7 +49,7 @@ class CoCoDataset:
 
         cat_ids = self.coco.getCatIds()
         image_ids = self.coco.getImgIds()
-        print('Visualizing {} images'.format(len(image_ids)))
+        print('-----Visualizing {} images-----'.format(len(image_ids)))
         for image_id in tqdm(image_ids):
             image = self.coco.loadImgs(image_id)[0]
             image_name = image['file_name']
@@ -84,10 +88,8 @@ class CoCoDataset:
 
     def remake(self, json_out_path, target_names):
         """remake"""
+        print('-----remaking coco dataset with target names {} -----'.format(target_names))
         if not os.path.exists(json_out_path):
-            os.makedirs(json_out_path)
-        else:
-            shutil.rmtree(json_out_path)
             os.makedirs(json_out_path)
 
         with open(self.json_path, 'r') as f:
@@ -117,14 +119,55 @@ class CoCoDataset:
                     'annotations': new_anns,
                     'categories': new_categories}
 
-        with open(os.path.join(json_out_path, 'instances.json'), 'w') as f:
+        with open(os.path.join(json_out_path, 'instances_remake.json'), 'w') as f:
+            f.write(json.dumps(new_json))
+
+    def merge_background_img(self, bg_imgs_path, json_out_path):
+        print('-----merging background images into coco dataset-----')
+        bg_imgs = glob(os.path.join(bg_imgs_path, '*.jpg'))
+        print('-----get {} background images-----'.format(len(bg_imgs)))
+        with open(self.json_path, 'r') as f:
+            coco_data = json.load(f)
+        imgs = coco_data['images']
+        print('-----old coco {} images-----'.format(len(imgs)))
+        for i, bg_img in enumerate(bg_imgs):
+            bg_img_np = cv2.imread(bg_img)
+            new_image = {"file_name": os.path.basename(bg_img),
+                         "height": bg_img_np.shape[0],
+                         "width": bg_img_np.shape[1],
+                         "id": len(imgs) + i}
+            imgs.append(new_image)
+        print('-----new coco {} images-----'.format(len(imgs)))
+        new_json = {'images': imgs,
+                    'annotations': coco_data['annotations'],
+                    'categories': coco_data['categories']}
+
+        with open(os.path.join(json_out_path, 'train_withbg.json'), 'w') as f:
             f.write(json.dumps(new_json))
 
 
 if __name__ == '__main__':
-    out_path = '/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/'
-    coco_dataset = CoCoDataset(json_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/0307_annotations/instances_val.json',
-                               images_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/val')
-    coco_dataset.ann_analysis(os.path.join(out_path, 'statistics'))
-    # coco_dataset.visualize(out_path)
-    # coco_dataset.remake(out_path, target_names=['quepenghuashang'])
+    json_path_df = '/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/0306_annotations/instances_val.json'
+    images_path_df = '/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/val'
+    out_path_df = '/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/'
+
+    parser = argparse.ArgumentParser(description='COCO Data Analysis Tool')
+    parser.add_argument('--json_path', type=str, default=json_path_df)
+    parser.add_argument('--images_path', type=str, default=images_path_df)
+    parser.add_argument('--out_path', type=str, default=out_path_df)
+
+    args = parser.parse_args()
+
+    coco_dataset = CoCoDataset(json_path=args.json_path,
+                               images_path=args.images_path)
+
+    analysis_out_path = os.path.join(args.out_path, 'analysis')
+    if not os.path.exists(analysis_out_path):
+        os.mkdir(analysis_out_path)
+
+    coco_dataset.ann_analysis(plot_out_path=os.path.join(analysis_out_path, 'statistic'))
+    # coco_dataset.visualize(os.path.join(analysis_out_path, 'visualize'))
+    # coco_dataset.remake(json_out_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/0306_annotations/',
+    #                     target_names=['quepenghuashang'])
+    # coco_dataset.merge_background_img(bg_imgs_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/train',
+    #                                   json_out_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/0307_annotations/')

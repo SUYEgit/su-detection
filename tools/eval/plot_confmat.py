@@ -113,10 +113,9 @@ class ConfMat:
         self.ann_coco = COCO(ann_json)
         self.res_coco = self.ann_coco.loadRes(res_json)
         self.cat_ids = self.ann_coco.getCatIds()
-        self.class_names = [cat['name'] for cat in self.ann_coco.cats]
+        self.class_names = [cat['name'] for cat in self.ann_coco.cats.values()]
         self.class_names.append('bg')
         self.confmat = np.zeros((len(self.class_names), len(self.class_names)))
-        self.confmat_ids = [[[]] * len(self.class_names) for i in range(len(self.class_names))]
         self.confmat_ids = {'{}{}'.format(i, j): [] for i in range(len(self.class_names)) for j in
                             range(len(self.class_names))}
         self.thr = thr
@@ -157,7 +156,7 @@ class ConfMat:
         """累计混淆矩阵"""
         for i, ann in enumerate(annotations):
             gt_label = ann['category_id']
-            print('GT +1')
+            #             print('GT +1')
             gt_bbox = ann['bbox']
             xmin = int(gt_bbox[0])
             ymin = int(gt_bbox[1])
@@ -169,7 +168,7 @@ class ConfMat:
                 if compute_iou((xmin, ymin, xmax, ymax), res_bboxes[j]) > self.iou_thr:
                     matched_labels.append(res_labels[j])
             if len(matched_labels) > 0:
-                print("DET IS TP +1")
+                #                 print("DET IS TP +1")
                 if gt_label in matched_labels:
                     # 框对且类别正确
                     self.confmat[gt_label - 1, gt_label - 1] += 1
@@ -197,7 +196,7 @@ class ConfMat:
                     break
                 if j == len(annotations) - 1:
                     # 所有ann都未与bbox匹配，确定此bbox为过杀
-                    print("DET IS FP +1")
+                    #                     print("DET IS FP +1")
                     self.confmat[-1, res_labels[i] - 1] += 1
                     self.confmat_ids['{}{}'.format(len(self.class_names) - 1, res_labels[i] - 1)].append(image_id)
 
@@ -237,24 +236,29 @@ class ConfMat:
         else:
             cv2.imwrite(out_name, img_np)
 
-    def index_badcase(self, gt_id, res_id, image_path):
+    def visualize_by_index(self, image_path, gt_id=None, res_id=None):
         """
         index_in_confmat
         note: ids start from 1
         """
-        badcase_path = os.path.join(self.out_path,
-                                    '{}_to_{}'.format(self.class_names[gt_id - 1], self.class_names[res_id - 1]))
-        if not os.path.exists(badcase_path):
-            os.mkdir(badcase_path)
 
-        target_ids = self.confmat_ids['{}{}'.format(gt_id - 1, res_id - 1)]
+        if gt_id is None or res_id is None:
+            target_ids = self.ann_coco.getImgIds()  # 可视化所有检测结果
+            vis_path = os.path.join(self.out_path, 'visualize')
+        else:
+            target_ids = self.confmat_ids['{}{}'.format(gt_id - 1, res_id - 1)]
+            vis_path = os.path.join(self.out_path, '{}_clsed_to_{}'.format(self.class_names[gt_id - 1],
+                                                                           self.class_names[res_id - 1]))
+        if not os.path.exists(vis_path):
+            os.mkdir(vis_path)
+
         for target_id in target_ids:
             image = self.ann_coco.loadImgs(target_id)[0]
             img_np = cv2.imread(os.path.join(image_path, image['file_name']))
 
             annotations = self._load_ann_by_id(target_id)
             labels, bboxes = self._load_results_by_id(target_id)
-            self._visualize(annotations, labels, bboxes, img_np, os.path.join(badcase_path, image['file_name']))
+            self._visualize(annotations, labels, bboxes, img_np, os.path.join(vis_path, image['file_name']))
 
     def run(self):
         image_ids = self.ann_coco.getImgIds()
@@ -291,4 +295,4 @@ if __name__ == '__main__':
                         iou_thr=float(args.iou_thr))
     confusion.run()
     if args.image_path is not None:
-        confusion.index_badcase(2, 3, args.image_path)
+        confusion.visualize_by_index(args.image_path, gt_id=None, res_id=None)
