@@ -19,9 +19,9 @@ def refresh_dir(path):
     """refresh dir"""
     if not os.path.exists(path):
         os.makedirs(path)
-    else:
-        shutil.rmtree(path)
-        os.makedirs(path)
+    # else:
+    #     shutil.rmtree(path)
+    #     os.makedirs(path)
 
 
 class CocoCutter:
@@ -91,7 +91,7 @@ class CocoCutter:
             flag = True
         return flag
 
-    def _cut_by_region(self, image_name, anns, overlap):
+    def _cut_by_region(self, image_name, anns, overlap, ignore_empty):
         """
 
         :param image_name:
@@ -130,7 +130,7 @@ class CocoCutter:
                         continue
                     flag = self.crop_coco_annotation(crop_mask_np, cat_id)  # flag表示是否切到了有效标注
 
-                if flag:
+                if flag or not ignore_empty:
                     crop_img_np = img_np[y_offset: y_offset + self.crop_height, x_offset: x_offset + self.crop_width]
 
                     self.new_json['images'].append({
@@ -144,7 +144,7 @@ class CocoCutter:
                 y_offset += self.crop_height - overlap
             x_offset += self.crop_width - overlap
 
-    def cut_by_region(self, crop_width, crop_height, overlap):
+    def cut_by_region(self, crop_width, crop_height, overlap, ignore_empty=True):
         """cut by region"""
         image_ids = self.coco.getImgIds()
         catIds = self.coco.getCatIds()
@@ -158,7 +158,7 @@ class CocoCutter:
 
             ann_ids = self.coco.getAnnIds(imgIds=image['id'], catIds=catIds, iscrowd=None)
             anns = self.coco.loadAnns(ann_ids)
-            self._cut_by_region(image_name, anns, overlap)
+            self._cut_by_region(image_name, anns, overlap, ignore_empty)
 
         with open(os.path.join(self.out_path, 'instances_{}.json'.format(self.data_type)), 'w') as f:
             f.write(json.dumps(self.new_json))
@@ -261,12 +261,13 @@ class CocoCutter:
 
 
 if __name__ == '__main__':
-    coco_cutter = CocoCutter(imgs_path='/root/suye/mrst_data/train_data/damian_1117/train',
-                             json_path='/root/suye/mrst_data/train_data/damian_1117/annotations/instances_train.json',
-                             out_path='/root/suye/mrst_data/train_data/damian_1117/tmp',
-                             data_type='test')
-    # coco_cutter.cut_by_region(crop_width=512,
-    #                           crop_height=512,
-    #                           overlap=10)
-    coco_cutter.cut_by_gt(crop_width=512,
-                          crop_height=512)
+    coco_cutter = CocoCutter(imgs_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted/train',
+                             json_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted/annotations/instances_train.json',
+                             out_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted/cbr',
+                             data_type='train')
+    coco_cutter.cut_by_region(crop_width=400,
+                              crop_height=1000,
+                              overlap=10,
+                              ignore_empty=True)
+    # coco_cutter.cut_by_gt(crop_width=512,
+    #                       crop_height=512)

@@ -27,8 +27,17 @@ def sort_anns(base_path, out_path):
             file_path = os.path.join(root, name)
             # print(file_path)
             filename = os.path.basename(file_path)
+            if 'defect' in filename or 'setting' in filename:
+                continue
+            if os.path.exists(os.path.join(img_path, filename)):
+                print('{} OVER WRITING {}'.format(file_path, os.path.join(img_path, filename)))
+                tmp_path = os.path.join(out_path, 'tmp')
+                if not os.path.exists(tmp_path):
+                    os.mkdir(tmp_path)
+                shutil.copy(file_path, os.path.join(tmp_path, filename))
+                continue
+            # assert not os.path.exists(os.path.join(img_path, filename))
 
-            assert not os.path.exists(os.path.join(img_path, filename))
             if filename.endswith('.jpg'):
                 shutil.copy(file_path, os.path.join(img_path, filename))
             elif filename.endswith('.xml'):
@@ -54,7 +63,7 @@ def main():
 
 
 if __name__ == '__main__':
-    base_path_df = '/Users/suye02/HUAWEI/data/3.26/组装前/侧面'
+    base_path_df = '/Users/suye02/su-detection/data/HUAWEI/data/train/侧面'
 
     parser = argparse.ArgumentParser(description='Sort anns')
     parser.add_argument('--base_path', type=str, default=base_path_df)

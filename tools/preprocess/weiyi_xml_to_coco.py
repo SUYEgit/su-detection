@@ -97,10 +97,8 @@ def weiyi_xml_to_coco(xml_dir, img_dir, coco_path):
 
     cats = {}
     for xml_name in tqdm(os.listdir(xml_dir)):
-        # if not xml_name.endswith('1015-117-1.xml'):
         if not xml_name.endswith('.xml'):
             continue
-        # print(xml_name)
         xml_path = os.path.join(xml_dir, xml_name)
         img_path = os.path.join(img_dir, xml_name.replace('.xml', '.jpg'))
         json_str = load_json(xml_path)
@@ -131,26 +129,21 @@ def weiyi_xml_to_coco(xml_dir, img_dir, coco_path):
                 cats[name] = 1
             else:
                 cats[name] += 1
-            # print(cats)
 
             if name in filtered_names:
                 continue
             id = name_id_map[name]
 
             name = hanzi_to_pinyin(name)
-            #             print(name)
-            # id = get_id_from_categories(name, categories)
 
             if 'polygon' in item.keys() and item['polygon']:
                 polygon = [[int(_) for _ in item['polygon'].values()]]
-                #                 print('into polygon, polygon{}'.format(polygon))
 
                 if len(polygon[0]) <= 4:
                     continue
 
                 # polygon_np = np.array(polygon).reshape([-1, 2])
                 add_new_annotation(new_annotations, polygon, new_images_idx, new_anno_idx, id)
-                #                 print('polygon written')
                 new_anno_idx += 1
 
             elif 'line' in item.keys() and item['line']:
@@ -159,22 +152,11 @@ def weiyi_xml_to_coco(xml_dir, img_dir, coco_path):
                 d = int(item['width'])
 
                 points = [[int(_) for _ in item['line'].values()]]
-                if name in ['aokeng', 'heidian']:
-                    xs = [x for i, x in enumerate(points[0]) if i % 2 == 0]
-                    ys = [y for i, y in enumerate(points[0]) if i % 2 != 0]
-                    print(xs, ys)
-                    xmin, xmax = min(xs), max(xs)
-                    ymin, ymax = min(ys), max(ys)
-                    center_x = (xmax + xmin) // 2
-                    center_y = (ymax + ymin) // 2
-                    r = max((xmax - xmin), (ymax - ymin)) // 2
-                    cv2.circle(mask_np, (center_x, center_y), max(2, r), color=(255, 255, 255),
-                               thickness=-1)
-                else:
-                    points_np = np.array(points).reshape([-1, 2])
-                    for i in range(len(points_np) - 1):
-                        cv2.line(mask_np, tuple(points_np[i]), tuple(points_np[i + 1]),
-                                 color=(255, 255, 255), thickness=max(3, d))
+
+                points_np = np.array(points).reshape([-1, 2])
+                for i in range(len(points_np) - 1):
+                    cv2.line(mask_np, tuple(points_np[i]), tuple(points_np[i + 1]),
+                             color=(255, 255, 255), thickness=max(3, d))
 
                 contours, hierarchy = cv2.findContours(mask_np, cv2.RETR_EXTERNAL,
                                                        cv2.CHAIN_APPROX_SIMPLE)
@@ -215,8 +197,7 @@ def weiyi_xml_to_coco(xml_dir, img_dir, coco_path):
                 xmax = bndbox[2]
                 ymax = bndbox[3]
 
-                if xmin >= xmax or ymin >= ymax:
-                    continue
+                assert xmin < xmax and ymin < ymax
 
                 bndbox_np = [[xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]]
 
@@ -268,7 +249,7 @@ def get_cats():
 
 if __name__ == '__main__':
     data_types = ['train', 'val']
-    base_path_df = '/Users/suye02/HUAWEI/data/3.26/组装前/侧面_sorted'
+    base_path_df = '/Users/suye02/MRST/data/新机台/0326三臂机数据'
     out_path_df = os.path.join(base_path_df, 'annotations')
 
     parser = argparse.ArgumentParser(description='weiyi xml to coco')

@@ -1,8 +1,9 @@
 #!/bin/bash
-coco_path='/Users/suye02/HUAWEI/data/train_data/0328_cemian_sorted'
-data_name='0328_cemian_allclass_coco'
+coco_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted'
+data_name='0330_cemian_all'
 bucket_name='project-huawei'
 
+cd ${coco_path}
 zip -r ${data_name}.zip \
     ${coco_path}/train \
     ${coco_path}/val \

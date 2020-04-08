@@ -94,8 +94,10 @@ settings = {
 
 class ResNet(nn.Module):
     # TODO 用expansion优化make_res_layer部分
+    # TODO 模型参数初始化（参照torch vision）
     def __init__(self, depth=34, num_classes=2, input_c=3):
         super(ResNet, self).__init__()
+
         self.base_channels = 64
         self.conv1 = nn.Sequential(nn.Conv2d(input_c, self.base_channels, kernel_size=7, stride=2, padding=3, bias=False),
                                    nn.BatchNorm2d(self.base_channels),

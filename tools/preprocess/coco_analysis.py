@@ -15,6 +15,8 @@ from tqdm import tqdm
 import json
 from pycocotools.coco import COCO
 import numpy as np
+import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 from icv.data import Coco
 
 
@@ -23,6 +25,7 @@ class CoCoDataset:
         self.json_path = json_path
         self.images_path = images_path
         self.coco = COCO(json_path)
+        self.class_names = [cat['name'] for cat in self.coco.cats.values()]
 
     def _target_exists(self, anns, target_names):
         if target_names is None:
@@ -32,6 +35,22 @@ class CoCoDataset:
             if target_name in all_ann_names:
                 return True
         return False
+
+    def ann_counts(self):
+        ann_ids = self.coco.getAnnIds()
+        print('TOTALLY {} ANNS'.format(len(ann_ids)))
+        anns = self.coco.loadAnns(ann_ids)
+
+        counts_dict = {}
+        for ann in anns:
+            gt_label = ann['category_id']
+            gt_name = self.class_names[gt_label - 1]
+            if gt_name in counts_dict:
+                counts_dict[gt_name] += 1
+            else:
+                counts_dict[gt_name] = 1
+
+        print('ANN COUNTS: {}'.format(counts_dict))
 
     def ann_analysis(self, plot_out_path):
         print('-----analyzing coco data and plotting-----')
@@ -147,9 +166,9 @@ class CoCoDataset:
 
 
 if __name__ == '__main__':
-    json_path_df = '/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/0306_annotations/instances_val.json'
-    images_path_df = '/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/val'
-    out_path_df = '/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/'
+    json_path_df = '/root/suye/mrst_data/train_data/damian_1117/cbr512_sd6_annotations/instances_train.json'
+    images_path_df = '/root/suye/mrst_data/train_data/damian_1117/cbr512_val'
+    out_path_df = '/root/suye/mrst_data/train_data/damian_1117/cbr512_val'
 
     parser = argparse.ArgumentParser(description='COCO Data Analysis Tool')
     parser.add_argument('--json_path', type=str, default=json_path_df)
@@ -165,9 +184,11 @@ if __name__ == '__main__':
     if not os.path.exists(analysis_out_path):
         os.mkdir(analysis_out_path)
 
-    coco_dataset.ann_analysis(plot_out_path=os.path.join(analysis_out_path, 'statistic'))
+    coco_dataset.ann_counts()
+    # coco_dataset.ann_analysis(plot_out_path=os.path.join(analysis_out_path, 'statistic'))
     # coco_dataset.visualize(os.path.join(analysis_out_path, 'visualize'))
     # coco_dataset.remake(json_out_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/0306_annotations/',
     #                     target_names=['quepenghuashang'])
     # coco_dataset.merge_background_img(bg_imgs_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/train',
     #                                   json_out_path='/Users/suye02/jingyan2/data/3月1号初版标注数据/cemian/cemian_coco/0307_annotations/')
+

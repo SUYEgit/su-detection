@@ -10,6 +10,7 @@ import copy
 import argparse
 
 import numpy as np
+import pandas as pd
 import cv2
 import matplotlib.pyplot as plt
 from pycocotools.coco import COCO
@@ -216,7 +217,7 @@ class ConfMat:
             # put text
             label_text = 'DET {} | {:.02f}'.format(self.class_names[label - 1], bbox[-1])
             cv2.putText(img_np, label_text, (int(bbox[0]), int(bbox[1]) - 2),
-                        cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 0))
+                        cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 255))
 
         # 画标注框
         for ann in annotations:
@@ -260,6 +261,83 @@ class ConfMat:
             labels, bboxes = self._load_results_by_id(target_id)
             self._visualize(annotations, labels, bboxes, img_np, os.path.join(vis_path, image['file_name']))
 
+    def visualize_fp_fn(self, image_path):
+        if not os.path.exists(os.path.join(self.out_path, 'badcase_vis')):
+            os.mkdir(os.path.join(self.out_path, 'badcase_vis'))
+
+        # 可视化漏检
+        print('>>>>>>VISUALIZING FN BADCASES...')
+        for i, class_name in enumerate(self.class_names[:-1]):
+            # 该类别漏检id
+            target_ids = self.confmat_ids['{}{}'.format(i, len(self.class_names) - 1)]
+            if len(target_ids) == 0:
+                continue
+            vis_path = os.path.join(self.out_path,
+                                    'badcase_vis',
+                                    '{}_clsed_to_{}'.format(self.class_names[i],
+                                                            self.class_names[len(self.class_names) - 1]))
+            if not os.path.exists(vis_path):
+                os.mkdir(vis_path)
+
+            for target_id in target_ids:
+                image = self.ann_coco.loadImgs(target_id)[0]
+                img_np = cv2.imread(os.path.join(image_path, image['file_name']))
+
+                annotations = self._load_ann_by_id(target_id)
+                labels, bboxes = self._load_results_by_id(target_id)
+                self._visualize(annotations, labels, bboxes, img_np, os.path.join(vis_path, image['file_name']))
+
+        # 可视化虚警
+        print('>>>>>>VISUALIZING FP BADCASES...')
+        for i, class_name in enumerate(self.class_names[:-1]):
+            # 该类别漏检id
+            target_ids = self.confmat_ids['{}{}'.format(len(self.class_names) - 1, i)]
+            if len(target_ids) == 0:
+                continue
+            vis_path = os.path.join(self.out_path,
+                                    'badcase_vis',
+                                    '{}_clsed_to_{}'.format(self.class_names[len(self.class_names) - 1],
+                                                            self.class_names[i]))
+            if not os.path.exists(vis_path):
+                os.mkdir(vis_path)
+
+            for target_id in target_ids:
+                image = self.ann_coco.loadImgs(target_id)[0]
+                img_np = cv2.imread(os.path.join(image_path, image['file_name']))
+
+                annotations = self._load_ann_by_id(target_id)
+                labels, bboxes = self._load_results_by_id(target_id)
+                self._visualize(annotations, labels, bboxes, img_np, os.path.join(vis_path, image['file_name']))
+
+    def weiyi_fuhe(self, out_path):
+        if not os.path.exists(out_path):
+            os.mkdir(out_path)
+        self.visualize_by_index(image_path=os.path.join(out_path, 'visualize'))
+
+        # 生成结果csv
+        excel_dict = {'文件名': [], '缺陷': [], 'x': [], 'y': [], 'width': [], 'height': [], '分数': []}
+
+        target_ids = self.ann_coco.getImgIds()
+        for target_id in target_ids:
+            image = self.ann_coco.loadImgs(target_id)[0]
+            image_name = image['file_name']
+            labels, bboxes = self._load_results_by_id(target_id)
+            for i, label in enumerate(labels):
+                bbox = bboxes[i]
+                excel_dict['文件名'].append(image_name)
+                excel_dict['缺陷'].append(self.class_names[label - 1])
+                excel_dict['x'].append(float(bbox[0]))
+                excel_dict['y'].append(float(bbox[1]))
+                excel_dict['width'].append(float(bbox[2]) - float(bbox[0]))
+                excel_dict['height'].append(float(bbox[3]) - float(bbox[1]))
+                excel_dict['分数'].append(float(bbox[4]))
+
+        data_df = pd.DataFrame(excel_dict)
+
+        writer = pd.ExcelWriter(os.path.join(out_path, 'results.csv'))
+        data_df.to_excel(writer, float_format='%.5f')
+        writer.save()
+
     def run(self):
         image_ids = self.ann_coco.getImgIds()
         for image_id in image_ids:
@@ -288,6 +366,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print(args.ann_json)
+    assert args.thresh is not None
     confusion = ConfMat(ann_json=args.ann_json,
                         res_json=args.res_json,
                         out_path=args.out_path,
@@ -295,4 +374,5 @@ if __name__ == '__main__':
                         iou_thr=float(args.iou_thr))
     confusion.run()
     if args.image_path is not None:
-        confusion.visualize_by_index(args.image_path, gt_id=None, res_id=None)
+        # confusion.visualize_by_index(args.image_path, gt_id=None, res_id=None)
+        confusion.visualize_fp_fn(args.image_path)
