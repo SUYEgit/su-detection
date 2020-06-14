@@ -1,6 +1,6 @@
 #!/bin/bash
-coco_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted'
-data_name='0330_cemian_all'
+coco_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/0410_cemian'
+data_name='0410_cemian'
 bucket_name='project-huawei'
 
 cd ${coco_path}

@@ -1,10 +1,10 @@
-model_name='0331_HUAWEI_cemianbs_mask_rcnn_hrnetv2p_w32_1x'
-config_name='mask_rcnn_hrnetv2p_w32_1x.py'
-ann_json='/root/suye/huawei_data/0330_cemian_all/annotations/instances_val.json'
-image_path='/root/suye/huawei_data/0330_cemian_all/val'
+model_name='0423_BX_merge_his_withbg_faster_rcnn_r50_caffe_c4_1x'
+config_name='faster_rcnn_r50_caffe_c4_1x.py'
+ann_json='/root/suye/jingyan2_data/BX/0422_bx_merge/annotations/instances_val.json'
+image_path='/root/suye/jingyan2_data/BX/0422_bx_merge/val_his'
 
-analysis_name='0331_eval_analysis'
-conf_thresh=0.1
+analysis_name='eval_analysis'
+conf_thresh=0.5
 
 #1. Start training
 # ./tools/dist_train.sh configs/suye/${config_name} 1 --validate
@@ -20,25 +20,25 @@ mkdir ${out_path}
 json_out=${out_path}/results.pkl
 
 echo INFERENCING TEST IMAGES...
-python tools/test.py \
-    ${config_path} \
-    ${pth_path} \
-    --out ${json_out} \
-    --eval bbox segm \
-    > ${out_path}/EVAL.log
+python tools/eval.py \
+    -c ${config_path} \
+    -o weights=${ckpt_path} \
+    --output_eval ${json_out}
+#     > ${out_path}/EVAL.log
 
 #3. Analyze model performance
 echo EVALUATING MODDEL PERFORMANCE...
-for type in bbox segm
+bbox_res_json=${json_out}.bbox.json
+python eval.py \
+    --ann_json ${ann_json} \
+    --res_json ${bbox_res_json} \
+    --out_path ${out_path} \
+    --thresh ${conf_thresh} \
+    --image_path ${image_path}
+
+for type in bbox
 do
     res_json=${json_out}.${type}.json
-
-    python plot_confmat.py \
-        --ann_json ${ann_json} \
-        --res_json ${res_json} \
-        --out_path ${out_path} \
-        --thresh ${conf_thresh} \
-        --image_path ${image_path}
     mkdir ${out_path}/${type}
     python pr_eval.py ${res_json} ${out_path} --ann ${ann_json} --types ${type} > ${out_path}/${type}/${type}.log
 done

@@ -1,5 +1,5 @@
 #!/bin/bash
-base_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/拐角'
+base_path='/Users/suye02/LIANFA/ori'
 ann_name='annotations'
 
 # 1. Sort xmls and imgs

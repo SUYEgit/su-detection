@@ -99,9 +99,10 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
 
         self.base_channels = 64
-        self.conv1 = nn.Sequential(nn.Conv2d(input_c, self.base_channels, kernel_size=7, stride=2, padding=3, bias=False),
-                                   nn.BatchNorm2d(self.base_channels),
-                                   nn.ReLU())
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(input_c, self.base_channels, kernel_size=7, stride=2, padding=3, bias=False),
+            nn.BatchNorm2d(self.base_channels),
+            nn.ReLU())
         self.maxpool = nn.MaxPool2d(2)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
@@ -167,3 +168,4 @@ if __name__ == '__main__':
     resnet.cuda()
     input_size = 224
     summary(resnet, (3, input_size, input_size))
+

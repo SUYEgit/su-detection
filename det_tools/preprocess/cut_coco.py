@@ -261,12 +261,12 @@ class CocoCutter:
 
 
 if __name__ == '__main__':
-    coco_cutter = CocoCutter(imgs_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted/train',
-                             json_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted/annotations/instances_train.json',
-                             out_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/侧面_sorted/cbr',
-                             data_type='train')
-    coco_cutter.cut_by_region(crop_width=400,
-                              crop_height=1000,
+    coco_cutter = CocoCutter(imgs_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/大面_sorted/val',
+                             json_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/大面_sorted/annotations/instances_val.json',
+                             out_path='/Users/suye02/su-detection/data/HUAWEI/data/训练数据/大面_sorted/cbr',
+                             data_type='val')
+    coco_cutter.cut_by_region(crop_width=512,
+                              crop_height=512,
                               overlap=10,
                               ignore_empty=True)
     # coco_cutter.cut_by_gt(crop_width=512,

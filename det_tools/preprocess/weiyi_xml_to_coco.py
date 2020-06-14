@@ -10,6 +10,7 @@
 import json
 import os
 import argparse
+from glob import glob
 
 import cv2
 import numpy as np
@@ -84,12 +85,13 @@ def add_new_annotation(new_annotations, polygon, new_images_idx, new_anno_idx, i
     new_annotations.append(new_annotation)
 
 
-def weiyi_xml_to_coco(xml_dir, img_dir, coco_path):
+def weiyi_xml_to_coco(xml_dir, img_dir, coco_path, with_bg=True):
     """
 
     :param xml_dir:
     :param img_dir:
     :param coco_path:
+    :param with_bg:
     :return:
     """
     new_images, new_annotations = [], []
@@ -213,8 +215,43 @@ def weiyi_xml_to_coco(xml_dir, img_dir, coco_path):
         'annotations': new_annotations,
         'categories': categories,
     }
+
+    if with_bg:
+        new_json = bg_to_json(new_json, xml_dir, img_dir)
+
     with open(coco_path, 'w', encoding='utf-8') as f:
         f.write(json.dumps(new_json))
+
+
+def bg_to_json(coco_data, xml_dir, img_dir):
+    print('-----merging background images into coco dataset-----')
+    all_imgs = glob(os.path.join(img_dir, '*.jpg'))
+    all_xmls = glob(os.path.join(xml_dir, '*.xml'))
+    all_xml_names = [os.path.basename(x) for x in all_xmls]
+
+    print('-----totally {} images'.format(len(all_imgs)))
+    bg_imgs = []
+    for img in all_imgs:
+        xml_name = os.path.basename(img).replace('.jpg', '.xml')
+        if xml_name not in all_xml_names:
+            bg_imgs.append(img)
+    print('-----get {} background images-----'.format(len(bg_imgs)))
+
+    imgs = coco_data['images']
+    print('-----old coco {} images-----'.format(len(imgs)))
+    for i, bg_img in enumerate(bg_imgs):
+        bg_img_np = cv2.imread(bg_img)
+        new_image = {"file_name": os.path.basename(bg_img),
+                     "height": bg_img_np.shape[0],
+                     "width": bg_img_np.shape[1],
+                     "id": len(imgs) + i}
+        imgs.append(new_image)
+    print('-----new coco {} images-----'.format(len(imgs)))
+    new_json = {'images': imgs,
+                'annotations': coco_data['annotations'],
+                'categories': coco_data['categories']}
+
+    return new_json
 
 
 def get_cats():
